@@ -1,0 +1,34 @@
+# Use Python 3.9 slim image
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for ML libraries
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
+COPY src/api-server-template/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the api-server-template contents
+COPY src/api-server-template/app.py ./
+COPY src/api-server-template/test_api.py ./
+COPY src/api-server-template/README.md ./
+COPY src/api-server-template/model_report ./model_report
+COPY src/api-server-template/models ./models
+COPY src/api-server-template/data ./data
+COPY src/api-server-template/test_outputs ./test_outputs
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Expose port 5000
+EXPOSE 5000
+
+# Start the application
+CMD ["python", "app.py"] 

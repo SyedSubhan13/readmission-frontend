@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://readmission-forecasting.local:5000
+      - NODE_ENV=production
+      - VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+    networks:
+      - app-network
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - node_modules:/app/node_modules
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      - MODEL_PATH=/app/models
+      - DATA_PATH=/app/data
+      - PYTHONPATH=/app
+      - CORS_ORIGINS=http://localhost,http://localhost:80,http://readmission-forecasting.local,http://readmission-forecasting.local:80
+      - MODEL_VERSION=${MODEL_VERSION}
+      - DEFAULT_MODEL=${DEFAULT_MODEL}
+      - BATCH_SIZE=${BATCH_SIZE}
+    volumes:
+      - ./src/api-server-template/models:/app/models
+      - ./src/api-server-template/data:/app/data
+      - ./src/api-server-template/test_outputs:/app/test_outputs
+      - ./src/api-server-template/model_report:/app/model_report
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules: 
